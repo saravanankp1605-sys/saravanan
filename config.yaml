@@ -1,7 +1,7 @@
 # Forex Trading Bot Configuration
 
 # MT5 broker credentials (only required for live/demo trading)
-# Leave empty when only running the backtester.
+# Leave empty when only running the backtester on synthetic/CSV/yfinance data.
 mt5:
   login: 0          # your MT5 account number
   password: ""      # your MT5 account password
@@ -16,11 +16,25 @@ trading:
   magic_number: 234000    # bot identifier on the trade
   deviation: 20           # max price deviation (points)
 
-# Strategy: simple moving-average crossover
+# Strategy
+# Available: ma_crossover, rsi, macd, breakout
+# Put strategy-specific params under `params:` (or alongside `name:` -- both work).
 strategy:
   name: "ma_crossover"
-  fast_period: 20
-  slow_period: 50
+  params:
+    # ma_crossover:
+    fast_period: 20
+    slow_period: 50
+    # rsi:
+    # period: 14
+    # overbought: 70
+    # oversold: 30
+    # macd:
+    # fast: 12
+    # slow: 26
+    # signal: 9
+    # breakout:
+    # period: 20
 
 # Risk management
 risk:
@@ -34,3 +48,23 @@ risk:
 logging:
   level: "INFO"            # DEBUG | INFO | WARNING | ERROR
   file: "logs/bot.log"
+
+# Notifications (Telegram). Leave disabled if you don't want them.
+notifications:
+  telegram:
+    enabled: false
+    bot_token: ""           # from @BotFather
+    chat_id: ""             # your chat id
+
+# Historical data source for backtests.
+#   synthetic : built-in random walk (no internet needed)
+#   csv       : load a local CSV (columns: time,open,high,low,close,volume)
+#   yfinance  : pull from Yahoo! Finance (requires `pip install yfinance`)
+#   mt5       : pull a date range from a connected MT5 terminal (Windows only)
+data:
+  source: "synthetic"
+  csv_path: "data/eurusd_m15.csv"
+  yfinance_symbol: "EURUSD=X"
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  interval: "15m"           # yfinance: 1m, 5m, 15m, 30m, 60m, 1h, 1d
