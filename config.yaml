@@ -1,0 +1,36 @@
+# Forex Trading Bot Configuration
+
+# MT5 broker credentials (only required for live/demo trading)
+# Leave empty when only running the backtester.
+mt5:
+  login: 0          # your MT5 account number
+  password: ""      # your MT5 account password
+  server: ""        # broker server name, e.g. "ICMarkets-Demo"
+  path: ""          # optional: full path to terminal64.exe
+
+# Trading parameters
+trading:
+  symbol: "EURUSD"
+  timeframe: "M15"        # M1, M5, M15, M30, H1, H4, D1
+  lot_size: 0.01          # used if dynamic_sizing is false
+  magic_number: 234000    # bot identifier on the trade
+  deviation: 20           # max price deviation (points)
+
+# Strategy: simple moving-average crossover
+strategy:
+  name: "ma_crossover"
+  fast_period: 20
+  slow_period: 50
+
+# Risk management
+risk:
+  dynamic_sizing: true     # size position based on account balance
+  risk_per_trade: 0.01     # 1% of balance risked per trade
+  stop_loss_pips: 30
+  take_profit_pips: 60
+  max_open_positions: 1
+
+# Logging
+logging:
+  level: "INFO"            # DEBUG | INFO | WARNING | ERROR
+  file: "logs/bot.log"
