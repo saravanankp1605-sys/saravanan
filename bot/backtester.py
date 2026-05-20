@@ -39,31 +39,68 @@ class BacktestResult:
     def final_balance(self) -> float:
         return float(self.equity_curve.iloc[-1]) if len(self.equity_curve) else self.initial_balance
 
-    def summary(self) -> dict:
-        n = len(self.trades)
-        wins = [t for t in self.trades if t.pnl > 0]
-        losses = [t for t in self.trades if t.pnl <= 0]
-        win_rate = (len(wins) / n) if n else 0.0
-        gross_profit = sum(t.pnl for t in wins)
-        gross_loss = -sum(t.pnl for t in losses) or 1e-9
-        profit_factor = gross_profit / gross_loss
-        ret = (self.final_balance / self.initial_balance) - 1.0
+    def summary(self, commission_per_lot: float = 0.0,
+                spread_pips: float = 0.0,
+                pip_value: float = 0.0001,
+                contract_size: float = 100_000) -> dict:
+        """Return a summary dict with P&L, win/loss, fees, and max drawdown.
 
+        If commission_per_lot or spread_pips are provided, net P&L accounts
+        for transaction costs.
+        """
+        n = len(self.trades)
+
+        # Compute per-trade net P&L (after fees)
+        net_pnls: List[float] = []
+        total_commission = 0.0
+        total_spread_cost = 0.0
+        total_gross_pnl = 0.0
+        for t in self.trades:
+            comm = 2 * commission_per_lot * t.volume
+            spread = spread_pips * pip_value * t.volume * contract_size
+            net = t.pnl - comm - spread
+            net_pnls.append(net)
+            total_commission += comm
+            total_spread_cost += spread
+            total_gross_pnl += t.pnl
+
+        total_fees = total_commission + total_spread_cost
+        total_net_pnl = total_gross_pnl - total_fees
+
+        wins = [p for p in net_pnls if p > 0]
+        losses = [p for p in net_pnls if p <= 0]
+        win_rate = (len(wins) / n) if n else 0.0
+        gross_profit = sum(wins)
+        gross_loss = -sum(losses) or 1e-9
+        profit_factor = gross_profit / gross_loss
+        net_return = total_net_pnl / self.initial_balance
+
+        # Max drawdown from equity curve
         equity = self.equity_curve
         if len(equity):
             peak = equity.cummax()
             dd = (equity - peak) / peak
             max_dd = float(dd.min())
+            max_dd_abs = float((equity - peak).min())
         else:
             max_dd = 0.0
+            max_dd_abs = 0.0
 
         return {
             "trades": n,
+            "winning_trades": len(wins),
+            "losing_trades": len(losses),
             "win_rate": round(win_rate, 4),
             "profit_factor": round(profit_factor, 3),
-            "total_return": round(ret, 4),
-            "final_balance": round(self.final_balance, 2),
-            "max_drawdown": round(max_dd, 4),
+            "gross_pnl": round(total_gross_pnl, 2),
+            "total_commissions": round(total_commission, 2),
+            "total_spread_cost": round(total_spread_cost, 2),
+            "total_fees": round(total_fees, 2),
+            "net_pnl": round(total_net_pnl, 2),
+            "net_return": round(net_return, 4),
+            "final_balance": round(self.initial_balance + total_net_pnl, 2),
+            "max_drawdown_pct": round(max_dd, 4),
+            "max_drawdown_abs": round(max_dd_abs, 2),
         }
 
 

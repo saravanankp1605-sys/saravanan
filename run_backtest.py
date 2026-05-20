@@ -18,7 +18,8 @@ from bot.backtester import run_backtest
 from bot.config import BotConfig
 from bot.data import load_data
 from bot.logger import setup_logger
-from bot.risk import RiskManager
+from bot.reporter import FeeConfig, export_trade_log_csv, generate_report
+from bot.risk import RiskManager, pip_value
 from bot.strategy import build_strategy
 
 
@@ -74,17 +75,45 @@ def main() -> int:
                           symbol=cfg.trading.symbol,
                           initial_balance=args.balance)
 
-    summary = result.summary()
-    log.info("=" * 50)
-    log.info("Backtest summary (%s, %s)", strat_name, cfg.trading.symbol)
-    for k, v in summary.items():
-        log.info("  %-15s %s", k, v)
-    log.info("=" * 50)
+    # Build fee config from config.yaml
+    fee = FeeConfig(
+        commission_per_lot=cfg.fees.commission_per_lot,
+        spread_pips=cfg.fees.spread_pips,
+        swap_per_night=cfg.fees.swap_per_night,
+    )
 
+    symbol = cfg.trading.symbol
+    pv = pip_value(symbol)
+    contract_size = risk.contract_size
+
+    # Generate and print the detailed report
+    report = generate_report(
+        result, fee,
+        symbol=symbol,
+        pip_value=pv,
+        contract_size=contract_size,
+    )
+    print(report)
+
+    # Save outputs to logs/
     out_dir = Path("logs")
     out_dir.mkdir(exist_ok=True)
+
+    # Save the full text report
+    report_path = out_dir / "backtest_report.txt"
+    report_path.write_text(report, encoding="utf-8")
+    log.info("Full report saved to %s", report_path)
+
+    # Save the trade log CSV
+    csv_path = out_dir / "trade_log.csv"
+    export_trade_log_csv(result, fee, csv_path,
+                         symbol=symbol, pip_value=pv,
+                         contract_size=contract_size)
+
+    # Save equity curve
     result.equity_curve.to_csv(out_dir / "equity_curve.csv", header=["equity"])
     log.info("Equity curve saved to logs/equity_curve.csv")
+
     return 0
 
 

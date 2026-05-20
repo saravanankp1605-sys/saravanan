@@ -56,6 +56,12 @@ notifications:
     bot_token: ""           # from @BotFather
     chat_id: ""             # your chat id
 
+# Fees & commissions (used in backtest reporting)
+fees:
+  commission_per_lot: 7.0     # $ charged per lot per side (open+close = 2x this)
+  spread_pips: 0.0            # simulated spread in pips (set 0 if spread is in data)
+  swap_per_night: 0.0         # overnight swap per lot per night (future use)
+
 # Historical data source for backtests.
 #   synthetic : built-in random walk (no internet needed)
 #   csv       : load a local CSV (columns: time,open,high,low,close,volume)

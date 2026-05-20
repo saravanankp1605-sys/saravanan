@@ -70,6 +70,13 @@ class DataConfig:
 
 
 @dataclass
+class FeesConfig:
+    commission_per_lot: float = 7.0    # $ per lot per side
+    spread_pips: float = 0.0           # simulated spread (pips)
+    swap_per_night: float = 0.0        # overnight swap per lot
+
+
+@dataclass
 class BotConfig:
     mt5: MT5Config = field(default_factory=MT5Config)
     trading: TradingConfig = field(default_factory=TradingConfig)
@@ -78,6 +85,7 @@ class BotConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     notifications: NotificationsConfig = field(default_factory=NotificationsConfig)
     data: DataConfig = field(default_factory=DataConfig)
+    fees: FeesConfig = field(default_factory=FeesConfig)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "BotConfig":
@@ -98,6 +106,7 @@ class BotConfig:
             logging=LoggingConfig(**(data.get("logging") or {})),
             notifications=NotificationsConfig(telegram=tg),
             data=DataConfig(**(data.get("data") or {})),
+            fees=FeesConfig(**(data.get("fees") or {})),
         )
 
     @classmethod
