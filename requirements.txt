@@ -1,5 +1,16 @@
 pandas>=2.0.0
 numpy>=1.24.0
 PyYAML>=6.0
-# MetaTrader5 is Windows-only; install separately if running live trading on Windows:
+
+# --- JARVIS assistant -------------------------------------------------------
+# OpenAI brain (optional; without it, JARVIS runs in offline echo mode)
+openai>=1.30.0
+
+# Voice I/O (optional; only needed for --voice mode)
+# SpeechRecognition>=3.10.0
+# pyttsx3>=2.90
+# PyAudio>=0.2.11   # microphone backend for SpeechRecognition
+
+# --- Live trading (Windows only) -------------------------------------------
+# MetaTrader5 is Windows-only; install separately if running live trading:
 #   pip install MetaTrader5
