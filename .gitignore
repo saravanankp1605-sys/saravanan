@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+logs/
+*.log
+data/*.csv
+!data/.gitkeep
+.idea/
+.vscode/
